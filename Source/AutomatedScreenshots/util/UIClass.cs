@@ -27,32 +27,32 @@ namespace AutomatedScreenshots
 
 		public UICLASS ()
 		{
-			Log.Info ("New instance of UICLASS: UICLASS constructor");
+			Log.trace("New instance of UICLASS: UICLASS constructor");
 
 		}
 		public void Start ()
 		{
 	
-			Log.Info ("UICLASS: Start");
+			Log.trace("UICLASS: Start");
 			DontDestroyOnLoad (this);
 		}
 
 		public void Awake ()
 		{
-			Log.Info ("UICLASS Awake");
+			Log.trace("UICLASS Awake");
 			GameEvents.onShowUI.Add(onShowUI);
 			GameEvents.onHideUI.Add(onHideUI);
 		}
 
 		private void onShowUI ()
 		{
-			Log.Info ("UICLASS onShowUI");
+			Log.trace("UICLASS onShowUI");
 			uiVisible = true;
 		}
 
 		private void onHideUI ()
 		{
-			Log.Info ("UICLASS onHideUI");
+			Log.trace("UICLASS onHideUI");
 			uiVisible = false;
 		}
 

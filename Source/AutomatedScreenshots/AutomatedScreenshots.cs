@@ -105,12 +105,12 @@ namespace AutomatedScreenshots
 
 		public AS ()
 		{
-			Log.Info ("New instance of Automated Screenshots: AS constructor");
+			Log.trace("New instance of Automated Screenshots: AS constructor");
 		}
 
 		public void Awake ()
 		{
-			Log.Info ("Awake");
+			Log.trace("Awake");
 			uiVisiblity = new UICLASS ();
 			uiVisiblity.Awake ();
             GameEvents.onGUIApplicationLauncherUnreadifying.Add(hideNow);
@@ -123,24 +123,17 @@ namespace AutomatedScreenshots
         }
 		public void Start ()
 		{
-
-			Log.Info ("Start");
+			Log.trace("Start");
 			DontDestroyOnLoad (this);
             FileOperations.MoveCfgToDataDir();
 
             configuration.Load ();
-#if (DEBUG)
-			Log.SetLevel (Log.LEVEL.INFO);
-#else
-			Log.SetLevel (configuration.logLevel);
-#endif
-
 		}
 
 		public void Update ()
 		{
 			if (this.gui == null) {
-				Log.Info ("this.gui == null");
+				Log.dbg("this.gui == null");
 				this.gui = this.gameObject.AddComponent<MainMenuGui> ();
 				this.gui.SetVisible (false);
 				RegisterEvents ();
@@ -149,7 +142,7 @@ namespace AutomatedScreenshots
             gui.OnGUIApplicationLauncherReady();
 
 			if (changeCallbacks) {
-				Log.Info ("Update - changeCallbacks: " + changeCallbacks.ToString ());
+				Log.dbg("Update - changeCallbacks: {0}", changeCallbacks);
 				RegisterEvents ();
 			}
 
@@ -157,14 +150,14 @@ namespace AutomatedScreenshots
 			    Input.GetKeyDown (KeyCode.F6)) {
 				AS.configuration.autoSave = !AS.configuration.autoSave;
 				this.gui.set_AS_Button_active ();
-				Log.Info ("AutoSave: " + AS.configuration.autoSave.ToString ());
+				Log.trace("AutoSave: {0}", AS.configuration.autoSave);
 			}
 
 			if (Input.GetKeyDown (activeKeycode) && !(Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.LeftControl)))
             {
-				Log.Info ("Update:     GameScene: " + HighLogic.LoadedScene.ToString ());
+				Log.dbg("Update:     GameScene: {0}", HighLogic.LoadedScene);
 				if (HighLogic.LoadedScene != GameScenes.MAINMENU) {
-					Log.Info ("KeyCode: " + activeKeycode.ToString () + " pressed");
+					Log.dbg("KeyCode: {0} pressed", activeKeycode);
 					if (!doSnapshots)
                         MainMenuGui.toolbarControl.SetTexture(MainMenuGui.TEXTURE_DIR + "Auto-negative-38", MainMenuGui.TEXTURE_DIR + "Auto-negative-24");
                     else
@@ -174,9 +167,9 @@ namespace AutomatedScreenshots
 					if (!doSnapshots && screenshotTaken && configuration.noGUIOnScreenshot == true && wasUIVisible)
 						GameEvents.onShowUI.Fire ();
 					this.gui.set_AS_Button_active ();
-					Log.Info ("LoadedScene   doSnapshots: " + doSnapshots.ToString ());
+					Log.dbg("LoadedScene   doSnapshots: {0}", doSnapshots);
 				} else if (HighLogic.LoadedScene == GameScenes.MAINMENU) {
-					Log.Info ("LoadedScene = MAINMENU   doSnapshots: " + doSnapshots.ToString ());
+					Log.dbg("LoadedScene = MAINMENU   doSnapshots: {0}", doSnapshots);
 					doSnapshots = false;
 				}
 			}
@@ -195,18 +188,18 @@ namespace AutomatedScreenshots
 				doSave = false;
 			}
 			if (doSnapshots || snapshotInProgress) {
-				Log.Info ("In LateUpdate, doSnapshots");
+				Log.dbg("In LateUpdate, doSnapshots");
 				if (screenshotTaken && configuration.noGUIOnScreenshot == true && System.IO.File.Exists (screenshotFile) && wasUIVisible)
 					GameEvents.onShowUI.Fire ();
 				// If there is a png file waiting to be converted, then don't do another screenshot
 				if (pngToConvert != "") {
-					Log.Info ("pngToConvert: " + pngToConvert);
+					Log.dbg("pngToConvert: {0}", pngToConvert);
 					if (System.IO.File.Exists (pngToConvert)) {
-						Log.Info ("Converting screenshot to JPG. New name: " + jpgName);
+						Log.dbg("Converting screenshot to JPG. New name: {0}", jpgName);
 						ConvertToJPG (pngToConvert, jpgName, configuration.JPGQuality);
 						System.IO.FileInfo file = new System.IO.FileInfo (pngToConvert);
 						if (!configuration.keepOrginalPNG) {
-							Log.Info ("AutomatedScreenshots: Delete PNG file");
+							Log.dbg("AutomatedScreenshots: Delete PNG file");
 							file.Delete ();
 						}
 						pngToConvert = "";
@@ -227,9 +220,9 @@ namespace AutomatedScreenshots
 									this.precrash = true;
 									lastPrecrashUpdate = Time.realtimeSinceStartup;
 
-									Log.Info ("vessel.verticalSpeed: " + vessel.verticalSpeed.ToString ());
-									Log.Info ("FlightGlobals.ship_altitude: " + FlightGlobals.ship_altitude.ToString ());
-									Log.Info ("FlightGlobals.ship_altitude  / -vessel.verticalSpeed: " + (FlightGlobals.ship_altitude / -vessel.verticalSpeed).ToString ());
+									Log.dbg("vessel.verticalSpeed: {0}", vessel.verticalSpeed);
+									Log.dbg("FlightGlobals.ship_altitude: {0}", FlightGlobals.ship_altitude);
+									Log.dbg("FlightGlobals.ship_altitude  / -vessel.verticalSpeed: {0}", (FlightGlobals.ship_altitude / -vessel.verticalSpeed));
 								}
 							}
 						}
@@ -242,35 +235,35 @@ namespace AutomatedScreenshots
 					        )
 					    )) {
 
-						Log.Info ("this.specialScene: " + this.specialScene.ToString ());
-						Log.Info ("this.precrash: " + this.precrash.ToString ());
-						Log.Info ("dualScreenshots: " + dualScreenshots.ToString ());
-						Log.Info ("this.newScene: " + this.newScene.ToString ());
-						Log.Info ("this.sceneReady: " + this.sceneReady.ToString ());
-						Log.Info ("Time.realtimeSinceStartup - sceneReadyAt: " + (Time.realtimeSinceStartup - sceneReadyAt).ToString ());
-						Log.Info ("Time.realtimeSinceStartup - lastSceneUpdate: " + (Time.realtimeSinceStartup - lastSceneUpdate).ToString ());
-						Log.Info ("Time.realtimeSinceStartup - lastUpdate: " + (Time.realtimeSinceStartup - lastUpdate).ToString ());
+						Log.dbg("this.specialScene: {0}", this.specialScene);
+						Log.dbg("this.precrash: {0}", this.precrash);
+						Log.dbg("dualScreenshots: {0}", this.dualScreenshots);
+						Log.dbg("this.newScene: {0}", this.newScene);
+						Log.dbg("this.sceneReady: {0}", this.sceneReady);
+						Log.dbg("Time.realtimeSinceStartup - sceneReadyAt: {0}", (Time.realtimeSinceStartup - sceneReadyAt));
+						Log.dbg("Time.realtimeSinceStartup - lastSceneUpdate: {0}", (Time.realtimeSinceStartup - lastSceneUpdate));
+						Log.dbg("Time.realtimeSinceStartup - lastUpdate: {0}", (Time.realtimeSinceStartup - lastUpdate));
 
 
-						Log.Info ("Taking screenshot");
-						Log.Info ("CurrentDirectory: " + System.IO.Directory.GetCurrentDirectory ());
-						Log.Info ("FileOperations.ScreenshotFolder: " + FileOperations.ScreenshotFolder ());
+						Log.dbg("Taking screenshot");
+						Log.dbg("CurrentDirectory: {0}", System.IO.Directory.GetCurrentDirectory ());
+						Log.dbg("FileOperations.ScreenshotFolder: {0}", FileOperations.ScreenshotFolder ());
 						snapshotInProgress = true;
 						newScene = false;
 						this.specialScene = false;
                         
 						//check if directory doesn't exist
 						if (!System.IO.Directory.Exists (FileOperations.ScreenshotFolder ())) {
-							Log.Info ("Directory does not exist");
+							Log.trace("Directory does not exist");
 							//if it doesn't, try to create it
 							try {
-								Log.Info ("Trying to create directory");
+								Log.trace("Trying to create directory");
 								System.IO.Directory.CreateDirectory (FileOperations.ScreenshotFolder ());
 							} catch (Exception e) {
-								Log.Error ("Exception trying to create directory: " + e);
+								Log.trace("Exception trying to create directory: {0}", e.Message);
 								return;
 							}
-							Log.Info ("Directory created");
+							Log.trace("Directory created");
 						} 
 						do {
 							cnt++;
@@ -313,7 +306,6 @@ namespace AutomatedScreenshots
                         // Must be an integer
                         ScreenCapture.CaptureScreenshot (pngName, configuration.supersize);
 
-
 						if (configuration.convertToJPG) {
 							pngToConvert = pngName;
 						}
@@ -325,7 +317,7 @@ namespace AutomatedScreenshots
 
 		public void RegisterEvents ()
 		{
-			Log.Info ("RegisterEvents");
+			Log.trace("RegisterEvents");
 
 			RegisterSceneChanges (false);
 			RegisterSpecialEvents (false);
@@ -337,7 +329,7 @@ namespace AutomatedScreenshots
 
 		void setAutosave(ConfigNode evt)
 		{
-			Log.Info ("setAutosave");
+			Log.trace("setAutosave");
 			AS.configuration.autoSave = AS.configuration.autoSaveOnGameStart;
 			gui.OnGUIApplicationLauncherReady();
 			gui.set_AS_Button_active ();
@@ -345,7 +337,7 @@ namespace AutomatedScreenshots
 
 		private void RegisterSceneChanges (bool  enable)
 		{
-			Log.Info ("RegisterSceneChanges: " + enable.ToString ());
+			Log.trace("RegisterSceneChanges: {0}", enable);
 			if (enable) {
 				GameEvents.onGameSceneLoadRequested.Add (this.CallbackGameSceneLoadRequested);
 				//GameEvents.onLevelWasLoaded.Add (this.CallbackLevelWasLoaded);
@@ -372,7 +364,7 @@ namespace AutomatedScreenshots
         //
         private void RegisterSpecialEvents (bool enable)
 		{
-			Log.Info ("RegisterSpecialEvents: " + enable.ToString ());
+			Log.trace("RegisterSpecialEvents: {0}", enable);
 			if (enable) {
 				GameEvents.onActiveJointNeedUpdate.Add (this.CallbackVesselEventHappened);
 				GameEvents.onCollision.Add (this.CallbackEventReportHappened);
@@ -428,7 +420,7 @@ namespace AutomatedScreenshots
 
 		private void CallbackGameSceneLoadRequested (GameScenes scene)
 		{
-			Log.Info ("CallbackGameSceneLoadRequested");
+			Log.trace("CallbackGameSceneLoadRequested");
 			if (AS.configuration.screenshotOnSceneChange) {
 				this.newScene = true;
 				this.sceneReady = false;
@@ -438,7 +430,7 @@ namespace AutomatedScreenshots
 
 		private void CallbackLevelWasLoaded(Scene scene, LoadSceneMode mode)
         {
-			Log.Info ("CallbackLevelWasLoaded");
+			Log.trace("CallbackLevelWasLoaded");
 			this.sceneReady = true;
 			lastSceneUpdate = Time.realtimeSinceStartup;
 			sceneReadyAt = Time.realtimeSinceStartup;
@@ -446,7 +438,7 @@ namespace AutomatedScreenshots
 
 		private void CallbackOnVesselChange (Vessel evt)
 		{
-			Log.Info ("CallbackOnVesselChange");
+			Log.trace("CallbackOnVesselChange");
 			//this.newScene = true;
 			//this.sceneReady = true;
 			this.specialScene = true;
@@ -455,7 +447,7 @@ namespace AutomatedScreenshots
 
 		private void CallbackVesselEventHappened (Vessel evt)
 		{
-			Log.Info ("CallbackVesselEventHappened");
+			Log.trace("CallbackVesselEventHappened");
 			//this.newScene = true;
 			//this.sceneReady = true;
 			this.specialScene = true;
@@ -464,7 +456,7 @@ namespace AutomatedScreenshots
 
 		private void CallbackEventReportHappened (EventReport evt)
 		{
-			Log.Info ("CallbackEventReportHappened");
+			Log.trace("CallbackEventReportHappened");
 			//this.newScene = true;
 			//this.sceneReady = true;
 			this.specialScene = true;
@@ -473,7 +465,7 @@ namespace AutomatedScreenshots
 
 		private void CallbackVector3dWasLoaded (Vector3d vector)
 		{
-			Log.Info ("CallbackVector3dWasLoaded");
+			Log.trace("CallbackVector3dWasLoaded");
 			//this.newScene = true;
 			//this.sceneReady = true;
 			this.specialScene = true;
@@ -482,7 +474,7 @@ namespace AutomatedScreenshots
 
 		private void CallbackPartDieWasLoaded (Part part)
 		{
-			Log.Info ("CallbackPartDieWasLoaded");
+			Log.trace("CallbackPartDieWasLoaded");
 			//this.newScene = true;
 			//this.sceneReady = true;
 			this.specialScene = true;
@@ -491,7 +483,7 @@ namespace AutomatedScreenshots
 
 		private void CallbackPartJointWasLoaded (PartJoint partjoint, float f)
 		{
-			Log.Info ("CallbackPartJointWasLoaded");
+			Log.trace("CallbackPartJointWasLoaded");
 			//this.newScene = true;
 			//this.sceneReady = true;
 			this.specialScene = true;
@@ -500,7 +492,7 @@ namespace AutomatedScreenshots
 
 		private void CallbackStageActivateWasLoaded (int i)
 		{
-			Log.Info ("CallbackStageActivateWasLoaded");
+			Log.trace("CallbackStageActivateWasLoaded");
 			//this.newScene = true;
 			//this.sceneReady = true;
 			this.specialScene = true;
@@ -509,7 +501,7 @@ namespace AutomatedScreenshots
 
 		private void CallbackCrewEvaLoaded (GameEvents.FromToAction<Part, Part> action)
 		{
-			Log.Info ("CallbackCrewEvaLoaded");
+			Log.trace("CallbackCrewEvaLoaded");
 			//this.newScene = true;
 			//this.sceneReady = true;
 			this.specialScene = true;
@@ -518,7 +510,7 @@ namespace AutomatedScreenshots
 
 		private void CallbackPartCouple (GameEvents.FromToAction<Part, Part> action)
 		{
-			Log.Info ("CallbackPartCouple");
+			Log.trace("CallbackPartCouple");
 			//this.newScene = true;
 			//this.sceneReady = true;
 			this.specialScene = true;
@@ -527,7 +519,7 @@ namespace AutomatedScreenshots
 
 		private void CallbackPartExplode (GameEvents.ExplosionReaction action)
 		{
-			Log.Info ("CallbackPartExplode");
+			Log.trace("CallbackPartExplode");
 			//this.newScene = true;
 			//this.sceneReady = true;
 			this.specialScene = true;
@@ -536,7 +528,7 @@ namespace AutomatedScreenshots
 
 		private void CallbackSOIChanged (GameEvents.HostedFromToAction<Vessel, CelestialBody >  action)
 		{
-			Log.Info ("CallbackSOIChanged");
+			Log.trace("CallbackSOIChanged");
 			//this.newScene = true;
 			//this.sceneReady = true;
 			this.specialScene = true;
@@ -545,7 +537,7 @@ namespace AutomatedScreenshots
 
 		internal void OnDestroy ()
 		{
-			Log.Info ("destroying Automated Screenshots");
+			Log.trace("destroying Automated Screenshots");
             MainMenuGui.toolbarControl.OnDestroy();
             Destroy(MainMenuGui.toolbarControl);
 
@@ -572,7 +564,7 @@ namespace AutomatedScreenshots
 		{
 			AS.activeKeycode = (KeyCode)Enum.Parse (typeof(KeyCode), keycode);
 			if (AS.activeKeycode == KeyCode.None) {
-				Log.Warning ("Make sure to use the list of keys to set the key! Reverting to F6");
+				Log.warn("Make sure to use the list of keys to set the key! Reverting to F6");
 				AS.activeKeycode = KeyCode.F6;
 			}
 		
@@ -610,15 +602,15 @@ namespace AutomatedScreenshots
 		public static string AddInfo (string original, int cnt, bool sceneReady = false, bool specialScene = false, bool precrash = false)
 		{
 			string f = original;
-			Log.Info ("AddInfo: original: " + original);
+			Log.detail("AddInfo: original: {0}",  original);
 			if (f.Contains (":")) {
 				f = f.Replace (":", "-");
 			}
 			if (f.Contains ("[cnt]")) {
-				Log.Info ("Contains [cnt]");
+				Log.detail("Contains [cnt]");
 				f = f.Replace ("[cnt]", cnt.ToString ());
 			} else
-				Log.Info ("Doesn't contain [cnt]");
+				Log.detail("Doesn't contain [cnt]");
 
 			if (f.Contains ("[date]")) {
 				f = f.Replace ("[date]", ConvertDateString ());
@@ -697,7 +689,7 @@ namespace AutomatedScreenshots
 
 			// In case they don't have anything there
 			if (f == original && cnt > 0) {
-				Log.Info ("f == original");
+				Log.detail("f == original");
 				f = f + cnt.ToString ();
 			}
 			if (f.Contains ("[evt]")) {

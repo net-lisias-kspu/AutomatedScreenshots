@@ -18,7 +18,6 @@
 using System;
 using System.IO;
 
-
 namespace AutomatedScreenshots
 {
 	public class Configuration
@@ -27,8 +26,6 @@ namespace AutomatedScreenshots
 
 		private static readonly String FILE_NAME = Path.Combine(KSPUtil.ApplicationRootPath, "PluginData") + "/AutomatedScreenshot.dat";
 		public  ushort MAX_SUPERSIZE = 4;
-
-		[Persistent] public Log.LEVEL logLevel { get; set; }
 
 //		public bool screenshotAtIntervals { get; set; }
 		public float screenshotInterval { get; set; }
@@ -66,13 +63,6 @@ namespace AutomatedScreenshots
 
 		public Configuration ()
 		{
-#if (DEBUG)
-			logLevel = Log.LEVEL.INFO;
-#else
-			logLevel = Log.LEVEL.WARNING;
-#endif
-			Log.Info ("Configuration - Setting default config");
-
 //			screenshotAtIntervals = false;
 			screenshotInterval = 5.0F;
 			convertToJPG = true;
@@ -111,14 +101,14 @@ namespace AutomatedScreenshots
 
 		public void Save ()
 		{
-			Log.Info ("Configuration.Save");
+			Log.trace("Configuration.Save");
 			FileOperations.SaveConfiguration (this, FILE_NAME);
 			AS.changeCallbacks = true;
 		}
 
 		public void Load ()
 		{
-			Log.Info ("Configuration.Load");
+			Log.trace("Configuration.Load");
 			FileOperations.LoadConfiguration (this, FILE_NAME);
 		}
 

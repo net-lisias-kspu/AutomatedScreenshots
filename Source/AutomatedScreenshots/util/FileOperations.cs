@@ -102,26 +102,25 @@ namespace AutomatedScreenshots
 		{
 			if (!Directory.Exists(AS_CONFIG_FOLDER)) Directory.CreateDirectory(AS_CONFIG_FOLDER);
 			if (configFile == null) {
-				Log.Info ("Creating configFile node");
+				Log.trace ("Creating configFile node");
 				configFile = new ConfigNode ();
 			}
 			if (!configFile.HasNode (AS_NODENAME)) {
-				Log.Info ("Creating configFileNode");
+				Log.trace ("Creating configFileNode");
 				configFileNode = new ConfigNode (AS_NODENAME);
-				Log.Info ("node created");
+				Log.trace ("node created");
 				configFile.SetNode (AS_NODENAME, configFileNode, true);
 			} else {
-				Log.Info ("Reading node");
+				Log.trace ("Reading node");
 				if (configFileNode == null) {
 					configFileNode = configFile.GetNode (AS_NODENAME);
-					Log.Info ("Node read");
+					Log.trace ("Node read");
 					if (configFileNode == null)
-						Log.Info ("configFileNode is null");
+						Log.trace ("configFileNode is null");
 
 				}
 			}
 
-			configFileNode.SetValue ("logLevel", ((ushort)configuration.logLevel).ToString (), true);
 			if (!ValidPathForWriteOperation(configuration.screenshotPath))
 				configuration.screenshotPath = FileOperations.ROOT_PATH + "Screenshots/";
 			configFileNode.SetValue ("screenshotPath", configuration.screenshotPath.ToString (), true);
@@ -194,7 +193,6 @@ namespace AutomatedScreenshots
 				configFileNode = configFile.GetNode (AS_NODENAME);
 				if (configFileNode != null) {
 
-					configuration.logLevel = (Log.LEVEL)int.Parse (SafeLoad (configFileNode.GetValue ("logLevel"), configuration.logLevel.ToString ()));
 					configuration.screenshotPath = SafeLoad (configFileNode.GetValue ("screenshotPath"), configuration.screenshotPath);
 					if (configuration.screenshotPath [configuration.screenshotPath.Length - 1] != '/' && configuration.screenshotPath [configuration.screenshotPath.Length - 1] != '\\')
 						configuration.screenshotPath += '/';

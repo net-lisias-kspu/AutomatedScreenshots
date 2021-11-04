@@ -49,11 +49,11 @@ namespace AutomatedScreenshots
 			string saveFileName = AS.AddInfo (AS.configuration.savePrefix, saveFileCnt,	asRef.isSceneReady(), asRef.isSpecialScene(), asRef.isPreCrash());
 
 			string str = GamePersistence.SaveGame (saveFileName, HighLogic.SaveFolder, s);
-			Log.Info ("String: " + str);
+			Log.dbg("String: {0}", str);
 
 			sfh.deleteOldestSaveFile (KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder, AS.configuration.numToRotate, saveFileCnt, saveFileName);
 
-			Log.Info ("backup thread terminated");
+			Log.trace("backup thread terminated");
 		}
 
 		/*
@@ -109,7 +109,7 @@ namespace AutomatedScreenshots
 
 			string fname = path + saveFileList;
 			if (!File.Exists (fname)) {
-				Log.Info ("file does not exist: " + fname);
+				Log.warn("file does not exist: {0}", fname);
 				return emptyReadText();
 			}
 
@@ -140,7 +140,7 @@ namespace AutomatedScreenshots
 				return emptyReadText();
 			}
 
-			Log.Info ("fileSaveCnt: " + fileSaveCnt.ToString ());
+			Log.detail("fileSaveCnt: {0}", fileSaveCnt);
 
 			ushort cnt = 0;
 			readText = new string[numSaveFiles + MAX_OFFSET];
@@ -175,9 +175,8 @@ namespace AutomatedScreenshots
 			File.WriteAllLines (fname, writeText);	
 			}
 			catch (Exception e) {
-				Log.Info ("Exception caught after WriteAllLines: " + e);
+				Log.err("Exception caught after WriteAllLines: {0}", e);
 			}
-				
 		}
 
 		/*

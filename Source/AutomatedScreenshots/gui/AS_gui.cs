@@ -142,7 +142,7 @@ namespace AutomatedScreenshots
         internal const string MODNAME = "Automated Screenshots";
         private void UpdateToolbarStock ()
 		{
-			Log.Info ("UpdateToolbarStock, appLaucherHidden: " + appLaucherHidden.ToString());
+			Log.trace ("UpdateToolbarStock, appLaucherHidden: " + appLaucherHidden.ToString());
 
             if (toolbarControl == null)
             {
@@ -160,7 +160,7 @@ namespace AutomatedScreenshots
 
         private void HideToolbarStock ()
 		{
-			Log.Info ("HideToolbarStock");
+			Log.trace ("HideToolbarStock");
             toolbarControl.OnDestroy();
             Destroy(toolbarControl);
 
@@ -188,7 +188,7 @@ namespace AutomatedScreenshots
 					this.bounds = GUILayout.Window (this.GetInstanceID (), this.bounds, this.Window, AS.TITLE, HighLogic.Skin.window);
 				}
 			} catch (Exception e) {
-				Log.Error ("exception: " + e.Message);
+				Log.err("exception: {0}", e.Message);
 			}
 		}
 
@@ -514,7 +514,7 @@ namespace AutomatedScreenshots
 
 		public void set_AS_Button_active()
 		{
-			Log.Info ("set_AS_Button_active   AS.doSnapshots: " + AS.doSnapshots.ToString() + "   AS.configuration.autoSave: " + AS.configuration.autoSave.ToString() );
+			Log.detail("set_AS_Button_active   AS.doSnapshots: {0}   AS.configuration.autoSave: {1}", AS.doSnapshots, AS.configuration.autoSave );
 
 
 				if (AS.doSnapshots == false && AS.configuration.autoSave == false)
@@ -536,7 +536,7 @@ namespace AutomatedScreenshots
 
         public void GUIToggle ()
 		{
-			Log.Info ("GUIToggle");
+			Log.trace ("GUIToggle");
 			ASInfoDisplay.infoDisplayActive = !ASInfoDisplay.infoDisplayActive;
 			if (ASInfoDisplay.infoDisplayActive) {
 				SetVisible (true);
