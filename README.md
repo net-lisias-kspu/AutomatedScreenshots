@@ -36,38 +36,106 @@ The filename is fully configurable, by using variables in the file name.
 
 The following are the "variables" available in file names:
 
-[date] = Parsed DateString
-[UT] = Current in-game time in seconds
-[save] = Name of current save game
-[vessel] = Active Vessel name
-[body] = Current primary celestial body name
-[situation] = Active Vessel situation (PRELAUNCH, FLYING, ORBITING, etc.)
-[biome] = Current Active Vessel biome
-[year] = Current in-game year (as seen in top left during flight (1, 2, etc.))
-[day] = Current in-game day (similar to year)
-[hour] = in-game hour
-[min] = in-game minute
-[sec] = in-game seconds
-[evt] = event flag
+* [date] = Parsed DateString
+* [UT] = Current in-game time in seconds
+* [save] = Name of current save game
+* [vessel] = Active Vessel name
+* [body] = Current primary celestial body name
+* [situation] = Active Vessel situation (PRELAUNCH, FLYING, ORBITING, etc.)
+* [biome] = Current Active Vessel biome
+* [year] = Current in-game year (as seen in top left during flight (1, 2, etc.))
+* [day] = Current in-game day (similar to year)
+* [hour] = in-game hour
+* [min] = in-game minute
+* [sec] = in-game seconds
+* [evt] = event flag
 
 ### Event Flag
 
-If a screenshot by time interval: time
-If by scene change: scene
-If by special event: event
+1. If a screenshot by time interval: time
+2. If by scene change: scene
+3. If by special event: event
 
-An example (ridiculous) possible filename is: 
-AS_[date]_[save]_[vessel]_[body]_[biome]_[situation]_Y[year]_D[day]_H[hour]_M[min]_S[sec]_UT[UT] 
+An (ridiculous) example of filename is: 
+`AS_[date]_[save]_[vessel]_[body]_[biome]_[situation]_Y[year]_D[day]_H[hour]_M[min]_S[sec]_UT[UT]`
 
 which could turn out to be: 
-AS_2015-04-30-22-22_KSPv1.0.0_SaveGameTest_Kerbal#X_Kerbin_Shores_PRELAUNCH_Y1_D10_H5_M7_S36_UT212856.png
+`AS_2015-04-30-22-22_KSPv1.0.0_SaveGameTest_Kerbal#X_Kerbin_Shores_PRELAUNCH_Y1_D10_H5_M7_S36_UT212856.png`
 
 The code for the JPG conversion and the custom filenames was taken from the Sensible Screenshot mod, written by magico13
 
 ### Automated Saves
 
 The mod will now do automatic saves at specified intervals. it will only keep a specified number of save files.
-Automatic saves is turned on by hitting Ctrl-F5
+
+Automatic saves is turned on by hitting Ctrl-F5.
+
+### Usage
+
+Assuming you are using the default of F6 for the screenshots, the icon in the toolbar will be one of the following. The icons for the regular toolbar and the Blizzy toolbar are the same except for size:
+
+|                          |                                   |                       |
+|:-------------------------|:---------------------------------:|:----------------------|
+| 1. All White             | ![](./Docs/imgs/AS.png)           | Nothing is activated
+| 2. Reversed              |                                   | Configuration window is active
+| 3. Green camera          | ![](./Docs/imgs/AS-snapshot.png)  | Automated screenshots are active
+| 4. Green disk            | ![](./Docs/imgs/AS-autosave.png)  | Automated saves are active
+| 5. Green camera and disk | ![](./Docs/imgs/AS-snap-save.png) | Both automated screenshots and automated saves are active
+
+### Configuration
+
+New Feature added (not in screen below yet): Supersize Screenshots
+
+***Important note regarding the Supersize option***: The values range from 0-4. 0 is the default, 1 is the same as 0.
+
+Note that a value of 4 can take up to a second to do the screenshot. This option is extremely processor intensive, only use it if you need it for cinematics.
+
+Set this to the factor which you want your screen resolution to be multiplied by. For example, if your game resolution is 1280x720, setting the number here to 2 would give you screenshots of size 2560x1440.
+
+See the image below for the configuration screen. Explanations of the fields are below the image:
+
+![](./Docs/imgs/ASS.png)
+
+* Screenshot interval in seconds
+	+ Time between each screenshot. You can go down to 1/10 of a second
+* Convert to JPG
+	+ Screenshots are saved as PNG files, which are large. This will convert the saved file to a JPG file, which is a lot smaller
+* Keep original PNG
+	+ If checked, will keep the original PNG file after conversion
+* Screenshot path
+	+ Path to save screenshots. Defaults to standard screenshot folder
+* Filename format
+	+ The filename is completely configurable. See the section on the filename variables for complete information
+* JPEG Quality
+	+ Quality of the converted JPG. Default is 75, I suggest you leave it there. Lower numbers means a smaller file, but also a loss of quality
+* Screenshot after scene change
+	+ If you want an additional screenshot after each scene change, enable this
+* Screenshot after special event
+	+ KSP has special events (ie: crash, crew killed, etc). See the section on special events for more details
+* Use Blizzy Toolbar if available
+	+ If the Blizzy toolbar is installed, use it.
+* Activation Keycode
+	+ What key will activate the screenshots
+* No GUI on Screenshot
+	+ Disable the GUI (ie: F2) before taking the screenshot
+* GUI on screenshot
+	+ Take the screenshot with the GUI on. Both this and the previous can be done, which would result in 2 screenshots
+* Take pre-crash snapshots
+	+ Take extra snapshots if a crash is imminent
+* Seconds until impact
+	+ Start taking snapshots this many seconds before impact
+* Altitude limit
+	+ Must be below this altitude for pre-crash screenshots to be taken.
+* Minimum vertical speed
+	+ If speed is below this, it isn't a crash
+* Screenshot interval (pre-crash)
+	+  Interval between screenshots for the pre-crash settings. You can go down to 1/10 of a second
+* Minutes between saves
+	+ Save the game once this many minutes
+* Save file format
+	+ Name of the save file, uses same rules as the snapshot files
+* Max save files
+	+ Keep this many save files and no more, deletes any extra (only of the ones that were saved using this mod
 
 
 ## Installation
@@ -78,8 +146,7 @@ To install, place the GameData folder inside your Kerbal Space Program folder.
 
 ### Dependencies
 * Hard Dependencies
-<!--        * [KSP API Extensions/L](https://github.com/net-lisias-ksp/KSPAPIExtensions) 2.0 or newer -->
-        * [Toolbar Control](https://github.com/net-lisias-kspu/ToolbarControl) 0.1.6.15 or newer
+	+ [KSP API Extensions/L](https://github.com/net-lisias-ksp/KSPAPIExtensions) 2.4 or newer
 
 ### Licensing
 
