@@ -113,7 +113,6 @@ namespace AutomatedScreenshots
 			Log.Info ("Awake");
 			uiVisiblity = new UICLASS ();
 			uiVisiblity.Awake ();
-			VersionCheck.VerifyHistorianVersion ();
             GameEvents.onGUIApplicationLauncherUnreadifying.Add(hideNow);
         }
 
@@ -305,10 +304,10 @@ namespace AutomatedScreenshots
                             screenshotTaken = true;
                         }
 						screenshotFile = pngName;
-						//
+
 						// If Historian is available, then tell it to activate
-						//
-						VersionCheck.set_m_Active ();
+						HistorianSupport.Instance.set_m_Active();
+
                         // Change second number for supersize.  If non-zero,
                         // then multiplies the resolution by that number
                         // Must be an integer
