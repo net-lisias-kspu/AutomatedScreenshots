@@ -176,8 +176,7 @@ namespace AutomatedScreenshots
 			
 		}
 
-		public void FixedUpdate()
-//		public void LateUpdate ()
+		public void LateUpdate ()
 		{
 			string pngName;
 
