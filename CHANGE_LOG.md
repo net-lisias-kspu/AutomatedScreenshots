@@ -1,4 +1,4 @@
-# AutomatedScreenshots :: Change Log
+# Automated Screenshots /L Unleashed :: Change Log
 
 * 2018-00804: 0.8.4.2 (Lisias) for KSP 1.4.x (reissue)
 	+ Fixed the Textures path on code

@@ -1,6 +1,8 @@
-# AutomatedScreenshots Unofficial
+# Automated Screenshots /L Unleashed
 
-A mod to grab automated screenshots at specific time intervals and special events. Unofficial fork by Lisias.
+A mod to grab automated screenshots at specific time intervals and special events.
+
+[Unleashed](https://ksp.lisias.net/add-ons-unleashed/) fork by Lisias.
 
 
 ## In a Hurry
@@ -158,10 +160,11 @@ This work is licensed under [GPL 3.0](https://www.gnu.org/licenses/gpl-3.0.txt).
 	- Adapt : Reuse, modify or incorporate source code into your works (and redistribute it!) 
 + Under the following terms:
 	- You retain any copyright notices
-	- You recognize and respect any trademarks
+	- You recognise and respect any trademarks
 	- You don't impersonate the authors, neither redistribute a derivative that could be misrepresented as theirs.
 	- You credit the author and republish the copyright notices on your works where the code is used.
-	- You relicense (and fully comply) your works using GPL 2.0 (or later)
+	- You relicense (and fully comply) your works using GPL 3.0
+		- Please note that upgrading the license to any future license version **IS NOT ALLOWED** for this work, as the author **DID NOT** added the "or (at your option) any later version" on the license
 	- You don't mix your work with GPL incompatible works.
 
 

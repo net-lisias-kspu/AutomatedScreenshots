@@ -7,10 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutomatedScreenshots", "Sou
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFolder", "SolutionFolder", "{84FB42C0-B27A-4F9B-8901-A7B77ADAF795}"
 	ProjectSection(SolutionItems) = preProject
-		buildRelease.bat = buildRelease.bat
-		ChangeLog.txt = ChangeLog.txt
-		deploy.bat = deploy.bat
-		jenkins.txt = jenkins.txt
 		README.md = README.md
 	EndProjectSection
 EndProject
@@ -30,5 +26,11 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {70DA223E-5C3E-4233-B189-FA490D508F6E}
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		Policies = $0
+		$0.TextStylePolicy = $1
+		$1.FileWidth = 132
+		$1.scope = text/plain
 	EndGlobalSection
 EndGlobal
