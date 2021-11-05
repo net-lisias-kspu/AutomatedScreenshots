@@ -303,7 +303,7 @@ namespace AutomatedScreenshots
                         // Change second number for supersize.  If non-zero,
                         // then multiplies the resolution by that number
                         // Must be an integer
-                        ScreenCapture.CaptureScreenshot (pngName, configuration.supersize);
+						KSPe.Util.Image.Screenshot.Capture(pngName, configuration.supersize);
 
 						if (configuration.convertToJPG) {
 							pngToConvert = pngName;
