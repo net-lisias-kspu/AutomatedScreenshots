@@ -16,7 +16,7 @@
 
 */
 using System;
-using System.IO;
+using IO = System.IO;	// To be replaced by KSPe.IO someday...
 
 namespace AutomatedScreenshots
 {
@@ -37,14 +37,14 @@ namespace AutomatedScreenshots
 			set
 			{
 				//check if directory doesn't exist
-				if (!System.IO.Directory.Exists(value))
+				if (!IO.Directory.Exists(value))
 				{
 					Log.trace("Directory does not exist");
 					//if it doesn't, try to create it
 					try
 					{
 						Log.trace("Trying to create directory");
-						System.IO.Directory.CreateDirectory(value);
+						IO.Directory.CreateDirectory(value);
 					}
 					catch (Exception e)
 					{
@@ -91,7 +91,7 @@ namespace AutomatedScreenshots
 			screenshotInterval = 5.0F;
 			convertToJPG = true;
 			keepOrginalPNG = false;
-			screenshotPath = FileOperations.ROOT_PATH + "Screenshots/";
+			screenshotPath = KSPe.IO.Hierarchy.SCREENSHOT.Solve();
 			noGUIOnScreenshot = false;
 			guiOnScreenshot = true;
 			filename = "AS-[cnt]";
@@ -126,14 +126,14 @@ namespace AutomatedScreenshots
 		public void Save ()
 		{
 			Log.trace("Configuration.Save");
-			FileOperations.SaveConfiguration (this, FileOperations.AS_CFG_FILE);
+			FileOperations.SaveConfiguration(this);
 			AS.changeCallbacks = true;
 		}
 
 		public void Load ()
 		{
 			Log.trace("Configuration.Load");
-			FileOperations.LoadConfiguration (this, FileOperations.AS_CFG_FILE);
+			FileOperations.LoadConfiguration(this);
 		}
 
 	}

@@ -17,6 +17,7 @@
 */
 using System;
 using System.Threading;
+using IO = System.IO;	// To be replaced by KSPe.IO someday...
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -183,7 +184,7 @@ namespace AutomatedScreenshots
 			{
 				Log.dbg("In LateUpdate, doSnapshots");
 
-				if (screenshotTaken && configuration.noGUIOnScreenshot && wasUIVisible && (null != this.lastScreenshot && System.IO.File.Exists(this.lastScreenshot))) // FIXME hitting the filesyste on Updates are bad. Try to work around this.
+				if (screenshotTaken && configuration.noGUIOnScreenshot && wasUIVisible && (null != this.lastScreenshot && IO.File.Exists(this.lastScreenshot))) // FIXME hitting the filesyste on Updates are bad. Try to work around this.
 					GameEvents.onShowUI.Fire ();
 
 				if (AS.configuration.precrashSnapshots) {
@@ -224,17 +225,16 @@ namespace AutomatedScreenshots
 					Log.dbg("Time.realtimeSinceStartup - lastUpdate: {0}", (Time.realtimeSinceStartup - lastUpdate));
 
 					Log.dbg("Taking screenshot");
-					Log.dbg("CurrentDirectory: {0}", System.IO.Directory.GetCurrentDirectory ());
 					Log.dbg("FileOperations.ScreenshotFolder: {0}", Configuration.Instance.screenshotPath);
 					newScene = false;
 					this.specialScene = false;
 
 					do {
-						string s = AddInfo (configuration.filename, cnt++, sceneReady, specialScene, precrash);
+						string s = AddInfo(configuration.filename, cnt++, sceneReady, specialScene, precrash);
 
-						pngName = System.IO.Path.GetFullPath(Configuration.Instance.screenshotPath) + s + ".png";
-						jpgName = System.IO.Path.GetFullPath(Configuration.Instance.screenshotPath) + s + ".jpg";
-					} while (System.IO.File.Exists (pngName) || System.IO.File.Exists (jpgName));
+						pngName = IO.Path.GetFullPath(Configuration.Instance.screenshotPath) + s + ".png";
+						jpgName = IO.Path.GetFullPath(Configuration.Instance.screenshotPath) + s + ".jpg";
+					} while (IO.File.Exists (pngName) || IO.File.Exists (jpgName));
 
 					this.precrash = false;
 

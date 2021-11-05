@@ -16,15 +16,16 @@
 
 */
 using System;
-using System.IO;
 using System.Threading;
+using IO = System.IO;	// To be replaced by KSPe.IO someday...
 
 namespace AutomatedScreenshots
 {
 	class SaveFilesHandlers
 	{
 
-		private const string saveFileList = "/saveFileList.txt";
+		private static string SAVEDIR => KSPe.IO.Hierarchy.SAVE.Solve(HighLogic.SaveFolder);
+		private static string SAVEFILELIST = KSPe.IO.Hierarchy.SAVE.Solve(HighLogic.SaveFolder, "saveFileList.txt");
 		private const int NUMFILES_OFFSET = 0;
 		private const int FILESAVECNT_OFFSET = 1;
 		private const int FILENAME_OFFSET = 2;
@@ -38,20 +39,20 @@ namespace AutomatedScreenshots
 		/*
 		 * BackupWork
 		 */
-		public void BackupWork (AS asRef)
+		private void BackupWork (AS asRef)
 		{
 			SaveFilesHandlers sfh  = new SaveFilesHandlers ();
 
 			// SaveMode is:  OVERWRITE    APPEND   ABORT
 			SaveMode s = SaveMode.OVERWRITE;
 
-			saveFileCnt = FileSaveCnt(KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder) + 1;
+			saveFileCnt = FileSaveCnt() + 1;
 			string saveFileName = AS.AddInfo (AS.configuration.savePrefix, saveFileCnt,	asRef.isSceneReady(), asRef.isSpecialScene(), asRef.isPreCrash());
 
 			string str = GamePersistence.SaveGame (saveFileName, HighLogic.SaveFolder, s);
 			Log.dbg("String: {0}", str);
 
-			sfh.deleteOldestSaveFile (KSPUtil.ApplicationRootPath + "saves/" + HighLogic.SaveFolder, AS.configuration.numToRotate, saveFileCnt, saveFileName);
+			sfh.deleteOldestSaveFile (SAVEDIR, AS.configuration.numToRotate, saveFileCnt, saveFileName);
 
 			Log.trace("backup thread terminated");
 		}
@@ -69,18 +70,18 @@ namespace AutomatedScreenshots
 		/*
 		 * FileSaveCnt
 		 */
-		public int FileSaveCnt(string path)
+		private int FileSaveCnt()
 		{
 
-			string fname = path + saveFileList;
+			string fname = SAVEFILELIST;
 
-			if (!File.Exists (fname)) {
+			if (!IO.File.Exists (fname)) {
 				return 0;
 			}
 
 			// Open the file to read from. 
 
-			StreamReader file = new StreamReader (fname);
+			IO.StreamReader file = new IO.StreamReader (fname);
 			string line = file.ReadLine ();
 			// numSaveFiles = Convert.ToUInt16 (line);
 			line = file.ReadLine ();
@@ -103,19 +104,18 @@ namespace AutomatedScreenshots
 		/*
 		 * readSaveFileList
 		 */
-		public string[] readSaveFileList (string path)
+		private string[] readSaveFileList (string path)
 		{
 			string[] readText;
 
-			string fname = path + saveFileList;
-			if (!File.Exists (fname)) {
+			string fname = SAVEFILELIST;
+			if (!IO.File.Exists (fname)) {
 				Log.warn("file does not exist: {0}", fname);
 				return emptyReadText();
 			}
 
 			// Open the file to read from. 
-        
-			StreamReader file = new StreamReader (fname);
+			IO.StreamReader file = new IO.StreamReader (fname);
 			string line = file.ReadLine ();
 			numSaveFiles = 0;
 			try {
@@ -169,10 +169,10 @@ namespace AutomatedScreenshots
 		 */
 		void writeSaveFileList (string path, string[] writeText)
 		{
-			string fname = path + saveFileList;
+			string fname = SAVEFILELIST;
 
 			try{
-			File.WriteAllLines (fname, writeText);	
+				IO.File.WriteAllLines (fname, writeText);	
 			}
 			catch (Exception e) {
 				Log.err("Exception caught after WriteAllLines: {0}", e);
@@ -182,7 +182,7 @@ namespace AutomatedScreenshots
 		/*
 		 * deleteOldestSaveFile
 		 */
-		public void deleteOldestSaveFile (string path, ushort maxSaveFiles, int cnt = -1, string newFile = "")
+		private void deleteOldestSaveFile (string path, ushort maxSaveFiles, int cnt = -1, string newFile = "")
 		{
 			string[] fileList = readSaveFileList (path);
 		
@@ -210,13 +210,13 @@ namespace AutomatedScreenshots
 					//
 
 					string f = path + "/" + fileList [FILENAME_OFFSET + i - 1] + ".sfs";
-					if (File.Exists (f)) { 
-						File.Delete (f);
+					if (IO.File.Exists (f)) { 
+						IO.File.Delete (f);
 					}
                     f = path + "/" + fileList[FILENAME_OFFSET + i - 1] + ".loadmeta";
-                    if (File.Exists(f))
+                    if (IO.File.Exists(f))
                     {
-                        File.Delete(f);
+                        IO.File.Delete(f);
                     }
 
                 }

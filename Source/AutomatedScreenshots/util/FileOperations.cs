@@ -17,51 +17,44 @@
 */
 
 using System;
-using System.IO;
+using IO = System.IO;	// To be replaced by KSPe.IO someday...
 using UnityEngine;
+using USERDATA = KSPe.IO.Data<AutomatedScreenshots.Startup>;
 
 namespace AutomatedScreenshots
 {
 	internal static class FileOperations
 	{
-		// Legacy data migration support
-		public static readonly String ROOT_PATH = KSPUtil.ApplicationRootPath;
-		private static readonly String GAMEDATA_BASE_FOLDER = Path.Combine(ROOT_PATH, "GameData");
-		private static readonly String CONFIG_BASE_FOLDER = Path.Combine(ROOT_PATH,"PluginData");
+		private static readonly USERDATA.ConfigNode SETTINGS = USERDATA.ConfigNode.For(AS_NODENAME, "AS_Settings.cfg");
 		private static readonly String AS_NODENAME = "AutomatedScreenshots";
-		private static readonly String AS_BASE_FOLDER = Path.Combine(GAMEDATA_BASE_FOLDER, AS_NODENAME);
-		private static readonly String AS_CONFIG_FOLDER = Path.Combine(CONFIG_BASE_FOLDER, AS_NODENAME);
-		internal static readonly String AS_CFG_FILE = Path.Combine(AS_CONFIG_FOLDER, "AS_Settings.cfg");
-        private static readonly String AS_OLD_CFG_FILE = Path.Combine(AS_BASE_FOLDER, "PluginData/AS_Settings.cfg");
 
+		// Legacy data migration support
+		private static readonly String AS_OLD_CFG_FILE = KSPe.IO.Hierarchy.GAMEDATA.Solve(AS_NODENAME, "PluginData", "AS_Settings.cfg");
 
-        private static ConfigNode configFile = null;
+		private static ConfigNode configFile = null;
 		private static ConfigNode configFileNode = null;
 
 
-        public static void MoveCfgToDataDir()
-        {
-            if (File.Exists(AS_OLD_CFG_FILE))
-            {
-				if (!Directory.Exists(AS_CONFIG_FOLDER)) Directory.CreateDirectory(AS_CONFIG_FOLDER);
-				if (!File.Exists(AS_CFG_FILE))
-                {
-                    try
-                    {
-                        File.Copy(AS_OLD_CFG_FILE, AS_CFG_FILE);
-                        File.Delete(AS_OLD_CFG_FILE);
-                    }
-                    catch (Exception e)
-                    { }
-                }
-				else
-					File.Delete(AS_OLD_CFG_FILE);
-            }
-        }
-
-		public static void SaveConfiguration (Configuration configuration, String file)
+		public static void MoveCfgToDataDir()
 		{
-			if (!Directory.Exists(AS_CONFIG_FOLDER)) Directory.CreateDirectory(AS_CONFIG_FOLDER);
+			if (IO.File.Exists(AS_OLD_CFG_FILE))
+			{
+				if (!SETTINGS.IsLoadable) try
+				{
+					IO.File.Copy(AS_OLD_CFG_FILE, SETTINGS.KspPath);
+					IO.File.Delete(AS_OLD_CFG_FILE);
+				}
+				catch (Exception e)
+				{
+					Log.ex(typeof(FileOperations), e);
+				}
+				else
+					IO.File.Delete(AS_OLD_CFG_FILE);
+			}
+		}
+
+		public static void SaveConfiguration (Configuration configuration)
+		{
 			if (configFile == null) {
 				Log.trace ("Creating configFile node");
 				configFile = new ConfigNode ();
@@ -78,7 +71,6 @@ namespace AutomatedScreenshots
 					Log.trace ("Node read");
 					if (configFileNode == null)
 						Log.trace ("configFileNode is null");
-
 				}
 			}
 
@@ -112,7 +104,7 @@ namespace AutomatedScreenshots
 
 			configuration.keycode = AS.setActiveKeycode (configuration.keycode.ToString ()).ToString ();
 
-			configFile.Save (AS_CFG_FILE);
+			SETTINGS.Save(configFile);
 		}
 
 		//
@@ -144,9 +136,9 @@ namespace AutomatedScreenshots
 			return value;
 		}
 
-		public static void LoadConfiguration (Configuration configuration, String file)
+		public static void LoadConfiguration (Configuration configuration)
 		{
-			configFile = ConfigNode.Load (AS_CFG_FILE);
+			configFile = SETTINGS.Load().Node;
 
 			if (configFile != null) {
 				configFileNode = configFile.GetNode (AS_NODENAME);

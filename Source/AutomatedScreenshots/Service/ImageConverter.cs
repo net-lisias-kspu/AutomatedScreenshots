@@ -15,10 +15,10 @@
 
 */
 using System.Collections.Generic;
-
+using IO = System.IO;	// To be replaced by KSPe.IO someday...
+using UnityEngine;
 using KSPe.Annotations;
 
-using UnityEngine;
 
 namespace AutomatedScreenshots.Service
 {
@@ -92,7 +92,7 @@ namespace AutomatedScreenshots.Service
 				this.enabled = (0 != this.jobs.Count);
 				if (!this.enabled) return;
 				j = this.jobs[0];
-				if(!System.IO.File.Exists(j.pngFile)) return; // Screenshot still processing. Try again next frame.
+				if(!IO.File.Exists(j.pngFile)) return; // Screenshot still processing. Try again next frame.
 				this.jobs.RemoveAt(0);
 			}
 			process(j);
@@ -100,13 +100,13 @@ namespace AutomatedScreenshots.Service
 
 		private static void process(Job job)
 		{
-			Log.dbg("Processing {0} {1}", job.pngFile, System.IO.File.Exists(job.pngFile));
+			Log.dbg("Processing {0} {1}", job.pngFile, IO.File.Exists(job.pngFile));
 
 			convertToJPG(job.pngFile, job.jpgFile, job.jpgQuality);
 			if(job.keep) return;
 
 			Log.dbg("Deleting {0}", job.pngFile);
-			System.IO.FileInfo file = new System.IO.FileInfo(job.pngFile);
+			IO.FileInfo file = new IO.FileInfo(job.pngFile);
 			file.Delete();
 		}
 
@@ -115,11 +115,11 @@ namespace AutomatedScreenshots.Service
 			Log.dbg("Converting screenshot to JPG. New name: {0}", newFile);
 
 			Texture2D png = new Texture2D (1, 1);
-			byte[] pngData = System.IO.File.ReadAllBytes (originalFile);
+			byte[] pngData = IO.File.ReadAllBytes (originalFile);
 			png.LoadImage (pngData);
 			byte[] jpgData = png.EncodeToJPG (quality);
-			var file = System.IO.File.Open (newFile, System.IO.FileMode.Create);
-			var binary = new System.IO.BinaryWriter (file);
+			var file = IO.File.Open (newFile, IO.FileMode.Create);
+			var binary = new IO.BinaryWriter (file);
 			binary.Write (jpgData);
 			file.Close ();
 			Destroy (png);
