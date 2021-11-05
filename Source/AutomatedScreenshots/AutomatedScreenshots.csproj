@@ -41,6 +41,7 @@
       <DependentUpon>Version.tt</DependentUpon>
     </Compile>
     <Compile Include="Properties\LegalMamboJambo.cs" />
+    <Compile Include="ModuleManagerSupport.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="HistorianSupport.cs" />
   </ItemGroup>
