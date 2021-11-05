@@ -29,15 +29,16 @@ using UnityEngine;
 
 namespace AutomatedScreenshots
 {
-	public  class FileOperations
+	internal static class FileOperations
 	{
+		// Legacy data migration support
 		public static readonly String ROOT_PATH = KSPUtil.ApplicationRootPath;
 		private static readonly String GAMEDATA_BASE_FOLDER = Path.Combine(ROOT_PATH, "GameData");
 		private static readonly String CONFIG_BASE_FOLDER = Path.Combine(ROOT_PATH,"PluginData");
 		private static readonly String AS_NODENAME = "AutomatedScreenshots";
 		private static readonly String AS_BASE_FOLDER = Path.Combine(GAMEDATA_BASE_FOLDER, AS_NODENAME);
 		private static readonly String AS_CONFIG_FOLDER = Path.Combine(CONFIG_BASE_FOLDER, AS_NODENAME);
-		private static readonly String AS_CFG_FILE = Path.Combine(AS_CONFIG_FOLDER, "AS_Settings.cfg");
+		internal static readonly String AS_CFG_FILE = Path.Combine(AS_CONFIG_FOLDER, "AS_Settings.cfg");
         private static readonly String AS_OLD_CFG_FILE = Path.Combine(AS_BASE_FOLDER, "PluginData/AS_Settings.cfg");
 
 
@@ -60,9 +61,9 @@ namespace AutomatedScreenshots
                     catch (Exception e)
                     { }
                 }
+				else
+					File.Delete(AS_OLD_CFG_FILE);
             }
-            else
-                File.Delete(AS_OLD_CFG_FILE);
         }
 
 

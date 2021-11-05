@@ -16,42 +16,32 @@
 
 */
 using System;
-using UnityEngine;
-//using System.IO;
+using System.Collections.Generic;
+
 using KSP.UI.Screens;
 
-using ToolbarControl_NS;
+using KSPe.Annotations;
+using KSPe.UI.Toolbar;
+
+using UnityEngine;
+
+using GUI = KSPe.UI.GUI;
+using GUILayout = KSPe.UI.GUILayout;
+using Toolbar = KSPe.UI.Toolbar;
 
 namespace AutomatedScreenshots
 {
-    [KSPAddon(KSPAddon.Startup.MainMenu, true)]
-    public class RegisterToolbar : MonoBehaviour
-    {
-        void Start()
-        {
-            ToolbarControl.RegisterMod(MainMenuGui.MODID, MainMenuGui.MODNAME);
-        }
-    }
     public class MainMenuGui : MonoBehaviour
 	{
-        public static MainMenuGui Instance;
-
 		private const int WIDTH = 725;
 		private const int HEIGHT = 425;
 		private Rect bounds = new Rect (Screen.width / 2 - WIDTH / 2, Screen.height / 2 - HEIGHT / 2, WIDTH, HEIGHT);
 		private /* volatile*/ bool visible = false;
 
-        public static ToolbarControl toolbarControl = null;
+        public static Toolbar.Button button = null;
+        private static State.Control buttonController;
+
 		public  bool stockToolBarcreated = false;
-
-		public static Texture2D AS_button_off = new Texture2D (38, 38, TextureFormat.ARGB32, false);
-		public static Texture2D AS_button_config = new Texture2D (38, 38, TextureFormat.ARGB32, false);
-		public static Texture2D AS_button_save = new Texture2D (38, 38, TextureFormat.ARGB32, false);
-		public static Texture2D AS_button_snapshot = new Texture2D (38, 38, TextureFormat.ARGB32, false);
-		public static Texture2D AS_button_snapshot_save = new Texture2D (38, 38, TextureFormat.ARGB32, false);
-
-
-		private bool AS_Texture_Load = false;
 
 		private bool cfgWinData = false;
 //		private static bool newScreenshotAtIntervals = true;
@@ -69,7 +59,6 @@ namespace AutomatedScreenshots
 		private static bool newNoGUIOnScreenshot;
 		private static bool newGUIOnScreenshot;
 		private static bool newprecrashSnapshots;
-		private static bool blizzyToolbarInstalled = false;
 		private static bool appLaucherHidden = true;
 		private static string newKeycode = "";
 		private static ushort newsecondsUntilImpact;
@@ -93,10 +82,34 @@ namespace AutomatedScreenshots
 		private string numToRotate;
 		private bool newautoSaveOnGameStart;
 
-		internal MainMenuGui ()
+		internal MainMenuGui()
 		{
-            Instance = this;
-			blizzyToolbarInstalled = ToolbarManager.ToolbarAvailable;
+			this.CreateButton();
+		}
+
+		[UsedImplicitly]
+		private void Awake()
+		{
+			GameEvents.onShowUI.Add(onShowUI);
+			GameEvents.onHideUI.Add(onHideUI);
+		}
+
+		private bool uiVisible = true;
+		private void onShowUI()
+		{
+			this.uiVisible = true;
+		}
+
+		private void onHideUI()
+		{
+			this.uiVisible = false;
+		}
+
+		[UsedImplicitly]
+		private void OnDestroy()
+		{
+			GameEvents.onHideUI.Remove(onHideUI);
+			GameEvents.onShowUI.Remove(onShowUI);
 		}
 
 		public void setAppLauncherHidden()
@@ -123,54 +136,66 @@ namespace AutomatedScreenshots
             {
 				if (appLaucherHidden) {
 					appLaucherHidden = false;
-					if (MainMenuGui.toolbarControl != null)
-						UpdateToolbarStock ();
 				}
 			}
 		}
 
-		public void OnGUIApplicationLauncherReady ()
+		// State controller for the toobar button
+		internal enum ButtonState
 		{
-			UpdateToolbarStock ();
+			off,
+			snapshot,
+			save,
+			snapshot_and_save
 		}
-		public static readonly string TEXTURE_DIR =
-			// Texture2D Toolbar.GetTexture(string path, bool b) automagically does that for us! :D
-					//KSPUtil.ApplicationRootPath
-					//+ "GameData/"
-					"AutomatedScreenshots/PluginData/Textures/";
-        internal const string MODID = "AutomatedScreenshots_NS";
-        internal const string MODNAME = "Automated Screenshots";
-        private void UpdateToolbarStock ()
+		internal class ButtonStatus:KSPe.UI.Toolbar.State.Status<ButtonState> { protected ButtonStatus(ButtonState v):base(v) { }  public static implicit operator ButtonStatus(ButtonState v) => new ButtonStatus(v); public static implicit operator ButtonState(ButtonStatus s) => s.v; }
+		private void CreateButton()
 		{
 			Log.trace ("UpdateToolbarStock, appLaucherHidden: " + appLaucherHidden.ToString());
-
-            if (toolbarControl == null)
-            {
-                toolbarControl = gameObject.AddComponent<ToolbarControl>();
-                toolbarControl.AddToAllToolbars(GUIToggle, GUIToggleFalse,
-                    ApplicationLauncher.AppScenes.ALWAYS & ~ApplicationLauncher.AppScenes.MAINMENU,
-                    MODID,
-                    "automatedScreenshotButton",
-                    MainMenuGui.TEXTURE_DIR + "Auto-38",
-                    MainMenuGui.TEXTURE_DIR + "Auto-24",
-                    MODNAME
-                );
-            }
+			if(null == button)
+			{
+				button = Toolbar.Button.Create(this
+						, ApplicationLauncher.AppScenes.ALWAYS & ~ApplicationLauncher.AppScenes.MAINMENU	// REALLY NICE TRICK!!!! :)
+						, Tex.auto36
+						, Tex.auto24
+						, Version.FriendlyName
+					);
+				button.Add(Toolbar.Button.ToolbarEvents.Kind.Active
+					, Toolbar.State.Data.Create(Tex.autoNegative36, Tex.autoNegative24)	// OnActived
+					, Toolbar.State.Data.Create(										// OnDeactivated
+						Toolbar.State.Data.Item.Create(this.SelectInactiveTextureForButton36)
+						, Toolbar.State.Data.Item.Create(this.SelectInactiveTextureForButton24)
+						)
+					);
+				buttonController = button.State.Controller.Create<ButtonStatus>(
+					new Dictionary<Toolbar.State.Status, Toolbar.State.Data> {
+							{ (ButtonStatus)ButtonState.off, Toolbar.State.Data.Create(Tex.auto36, Tex.auto24) }
+							,{ (ButtonStatus)ButtonState.snapshot, Toolbar.State.Data.Create(Tex.autoSnapshot36, Tex.autoSnapshot24) }
+							,{ (ButtonStatus)ButtonState.save, Toolbar.State.Data.Create(Tex.autoSave36, Tex.autoSave24) }
+							,{ (ButtonStatus)ButtonState.snapshot_and_save, Toolbar.State.Data.Create(Tex.autoSnapshotSave36, Tex.autoSnapshotSave24) }
+					}
+				);
+				button.Toolbar.Add(Toolbar.Button.ToolbarEvents.Kind.Active
+						, new Toolbar.Button.Event(this.GUIToggle, this.GUIToggleFalse)
+					);
+				ToolbarController.Instance.Add(button);
+				this.updateButtonStatus();
+			}
         }
 
         private void HideToolbarStock ()
 		{
 			Log.trace ("HideToolbarStock");
-            toolbarControl.OnDestroy();
-            Destroy(toolbarControl);
 
-            toolbarControl = null;
+			ToolbarController.Instance.Destroy();
+
+            button = null;
 			appLaucherHidden = false;
 		}
 
 		public bool Visible ()
 		{
-			return this.visible;
+			return this.visible && this.uiVisible;
 		}
 
 		public void SetVisible (bool visible)
@@ -512,23 +537,44 @@ namespace AutomatedScreenshots
 			AS.configuration.autoSaveOnGameStart = newautoSaveOnGameStart;
 		}
 
-		public void set_AS_Button_active()
+		public void updateButtonStatus()
 		{
 			Log.detail("set_AS_Button_active   AS.doSnapshots: {0}   AS.configuration.autoSave: {1}", AS.doSnapshots, AS.configuration.autoSave );
-
-
-				if (AS.doSnapshots == false && AS.configuration.autoSave == false)
-					toolbarControl.SetTexture (TEXTURE_DIR + "Auto-38", TEXTURE_DIR + "Auto-24");
-				if (AS.doSnapshots == true && AS.configuration.autoSave == false)
-                toolbarControl.SetTexture (TEXTURE_DIR + "Auto-snapshot-38", TEXTURE_DIR + "Auto-snapshot-24");
-				if (AS.doSnapshots == false && AS.configuration.autoSave == true)
-                toolbarControl.SetTexture (TEXTURE_DIR + "Auto-save-38", TEXTURE_DIR + "Auto-save-24");
-				if (AS.doSnapshots == true && AS.configuration.autoSave == true)
-                toolbarControl.SetTexture (TEXTURE_DIR + "Auto-snapshot-save-38", TEXTURE_DIR + "Auto-snapshot-save-24");
-
+			if (AS.doSnapshots && !AS.configuration.autoSave)
+				button.Status = (ButtonStatus)ButtonState.snapshot;
+			else if (!AS.doSnapshots && AS.configuration.autoSave)
+				button.Status = (ButtonStatus)ButtonState.save;
+			else if (AS.doSnapshots && AS.configuration.autoSave)
+				button.Status = (ButtonStatus)ButtonState.snapshot_and_save;
+			else
+				button.Status = (ButtonStatus)ButtonState.off;
 		}
 
-        public void GUIToggleFalse()
+		private Texture2D SelectInactiveTextureForButton36()
+		{
+			if (AS.doSnapshots && !AS.configuration.autoSave)
+				return Tex.autoSnapshot36;
+			else if (!AS.doSnapshots && AS.configuration.autoSave)
+				return Tex.autoSave36;
+			else if (AS.doSnapshots && AS.configuration.autoSave)
+				return Tex.autoSnapshotSave36;
+			else
+				return Tex.auto36;
+		}
+
+		private Texture2D SelectInactiveTextureForButton24()
+		{
+			if (AS.doSnapshots && !AS.configuration.autoSave)
+				return Tex.autoSnapshot24;
+			else if (!AS.doSnapshots && AS.configuration.autoSave)
+				return Tex.autoSave24;
+			else if (AS.doSnapshots && AS.configuration.autoSave)
+				return Tex.autoSnapshotSave24;
+			else
+				return Tex.auto24;
+		}
+
+		public void GUIToggleFalse()
         {
             if (ASInfoDisplay.infoDisplayActive)
                 GUIToggle();
@@ -540,27 +586,15 @@ namespace AutomatedScreenshots
 			ASInfoDisplay.infoDisplayActive = !ASInfoDisplay.infoDisplayActive;
 			if (ASInfoDisplay.infoDisplayActive) {
 				SetVisible (true);
-				toolbarControl.SetTexture (TEXTURE_DIR + "Auto-negative-38", TEXTURE_DIR + "Auto-negative-24");
 			} else {
 				SetVisible (false);
-				set_AS_Button_active ();
 				cfgWinData = false;
 
 				GUI_SaveData ();
 
 				AS.configuration.Save ();
-#if false
-                if (AS.configuration.BlizzyToolbarIsAvailable && AS.configuration.useBlizzyToolbar) {
-					HideToolbarStock ();
-;
-				} else {
-#endif
-					UpdateToolbarStock ();
-					set_AS_Button_active();
-
-		//		}
-
 			}
+			this.updateButtonStatus();
 		}
 	}
 }

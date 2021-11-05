@@ -24,7 +24,6 @@ namespace AutomatedScreenshots
 	{
 		private static readonly Configuration instance = new Configuration ();
 
-		private static readonly String FILE_NAME = Path.Combine(KSPUtil.ApplicationRootPath, "PluginData") + "/AutomatedScreenshot.dat";
 		public  ushort MAX_SUPERSIZE = 4;
 
 //		public bool screenshotAtIntervals { get; set; }
@@ -102,14 +101,14 @@ namespace AutomatedScreenshots
 		public void Save ()
 		{
 			Log.trace("Configuration.Save");
-			FileOperations.SaveConfiguration (this, FILE_NAME);
+			FileOperations.SaveConfiguration (this, FileOperations.AS_CFG_FILE);
 			AS.changeCallbacks = true;
 		}
 
 		public void Load ()
 		{
 			Log.trace("Configuration.Load");
-			FileOperations.LoadConfiguration (this, FILE_NAME);
+			FileOperations.LoadConfiguration (this, FileOperations.AS_CFG_FILE);
 		}
 
 	}

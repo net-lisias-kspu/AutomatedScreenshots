@@ -35,7 +35,6 @@
     <Compile Include="util\Log.cs" />
     <Compile Include="util\FileOperations.cs" />
     <Compile Include="gui\ASInfoDisplay.cs" />
-    <Compile Include="util\UIClass.cs" />
     <Compile Include="util\saveFilesHandler.cs" />
     <Compile Include="Properties\Version.cs">
       <DependentUpon>Version.tt</DependentUpon>
@@ -43,7 +42,9 @@
     <Compile Include="Properties\LegalMamboJambo.cs" />
     <Compile Include="ModuleManagerSupport.cs" />
     <Compile Include="Startup.cs" />
+    <Compile Include="ToolbarSupport.cs" />
     <Compile Include="HistorianSupport.cs" />
+    <Compile Include="gui\Tex.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

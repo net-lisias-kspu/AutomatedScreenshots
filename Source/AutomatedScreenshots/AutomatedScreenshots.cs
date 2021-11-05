@@ -79,7 +79,6 @@ namespace AutomatedScreenshots
 		public static bool changeCallbacks;
 		public static Configuration configuration = new Configuration ();
 		public static KeyCode activeKeycode;
-		static private UICLASS uiVisiblity;
 		private bool wasUIVisible = true;
 		private ushort dualScreenshots = 0;
 		public MainMenuGui gui = null;
@@ -96,6 +95,7 @@ namespace AutomatedScreenshots
 		public void DoSnapshot ()
 		{
 			doSnapshots = true;
+			this.gui.updateButtonStatus();
 		}
 
 
@@ -108,19 +108,18 @@ namespace AutomatedScreenshots
 			Log.trace("New instance of Automated Screenshots: AS constructor");
 		}
 
-		public void Awake ()
+		public void Awake()
 		{
 			Log.trace("Awake");
-			uiVisiblity = new UICLASS ();
-			uiVisiblity.Awake ();
-            GameEvents.onGUIApplicationLauncherUnreadifying.Add(hideNow);
-        }
+			GameEvents.onGUIApplicationLauncherUnreadifying.Add(hideNow);
+		}
 
-        public void hideNow(GameScenes scene)
-        {
-            if (MainMenuGui.Instance != null)
-                MainMenuGui.Instance.GUIToggleFalse();
-        }
+		public void hideNow(GameScenes scene)
+		{
+			if (null != this.gui)
+				this.gui.GUIToggleFalse();
+		}
+
 		public void Start ()
 		{
 			Log.trace("Start");
@@ -137,41 +136,35 @@ namespace AutomatedScreenshots
 				this.gui = this.gameObject.AddComponent<MainMenuGui> ();
 				this.gui.SetVisible (false);
 				RegisterEvents ();
-
 			}
-            gui.OnGUIApplicationLauncherReady();
 
 			if (changeCallbacks) {
 				Log.dbg("Update - changeCallbacks: {0}", changeCallbacks);
 				RegisterEvents ();
 			}
 
-			if ((Input.GetKey (KeyCode.RightControl) || Input.GetKey (KeyCode.LeftControl)) &&
-			    Input.GetKeyDown (KeyCode.F6)) {
+			if ((Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.LeftControl)) &&
+				Input.GetKeyDown(KeyCode.F6))
+			{
 				AS.configuration.autoSave = !AS.configuration.autoSave;
-				this.gui.set_AS_Button_active ();
+				this.gui.updateButtonStatus();
 				Log.trace("AutoSave: {0}", AS.configuration.autoSave);
 			}
 
 			if (Input.GetKeyDown (activeKeycode) && !(Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.LeftControl)))
-            {
+			{
 				Log.dbg("Update:     GameScene: {0}", HighLogic.LoadedScene);
 				if (HighLogic.LoadedScene != GameScenes.MAINMENU) {
 					Log.dbg("KeyCode: {0} pressed", activeKeycode);
-					if (!doSnapshots)
-                        MainMenuGui.toolbarControl.SetTexture(MainMenuGui.TEXTURE_DIR + "Auto-negative-38", MainMenuGui.TEXTURE_DIR + "Auto-negative-24");
-                    else
-                        MainMenuGui.toolbarControl.SetTexture(MainMenuGui.TEXTURE_DIR + "Auto-38", MainMenuGui.TEXTURE_DIR + "Auto-24");
-                   						
 					doSnapshots = !doSnapshots;
 					if (!doSnapshots && screenshotTaken && configuration.noGUIOnScreenshot == true && wasUIVisible)
 						GameEvents.onShowUI.Fire ();
-					this.gui.set_AS_Button_active ();
 					Log.dbg("LoadedScene   doSnapshots: {0}", doSnapshots);
 				} else if (HighLogic.LoadedScene == GameScenes.MAINMENU) {
 					Log.dbg("LoadedScene = MAINMENU   doSnapshots: {0}", doSnapshots);
 					doSnapshots = false;
 				}
+				this.gui.updateButtonStatus ();
 			}
 			
 		}
@@ -274,12 +267,6 @@ namespace AutomatedScreenshots
 
 						this.precrash = false;
 
-						//
-						// I make the assumption that if the player wants the gui during the screenshot, then 
-						// it will be left visible.
-						//
-						wasUIVisible = uiVisiblity.isVisible () | configuration.guiOnScreenshot;
-						//Log.Info ("Update: Screenshotfolder:" + pngName);
 						if (configuration.noGUIOnScreenshot == true)
 							GameEvents.onHideUI.Fire ();
 						if (configuration.noGUIOnScreenshot && configuration.guiOnScreenshot) {
@@ -330,8 +317,7 @@ namespace AutomatedScreenshots
 		{
 			Log.trace("setAutosave");
 			AS.configuration.autoSave = AS.configuration.autoSaveOnGameStart;
-			gui.OnGUIApplicationLauncherReady();
-			gui.set_AS_Button_active ();
+			gui.updateButtonStatus ();
 		}
 
 		private void RegisterSceneChanges (bool  enable)
@@ -537,10 +523,7 @@ namespace AutomatedScreenshots
 		internal void OnDestroy ()
 		{
 			Log.trace("destroying Automated Screenshots");
-            MainMenuGui.toolbarControl.OnDestroy();
-            Destroy(MainMenuGui.toolbarControl);
-
-            //DelToolbarButton ();
+			ToolbarController.Instance.Destroy();
 			configuration.Save ();
 		}
 
