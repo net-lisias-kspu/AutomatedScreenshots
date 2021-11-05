@@ -15,17 +15,10 @@
 	If not, see <https://www.gnu.org/licenses/>.
 
 */
-// just uncomment this line to restrict file access to KSP installation folder
-#define _UNLIMITED_FILE_ACCESS
 
 using System;
 using System.IO;
 using UnityEngine;
-//using System.Collections.Generic;
-//using System.IO;
-//using System.Threading;
-
-
 
 namespace AutomatedScreenshots
 {
@@ -66,39 +59,6 @@ namespace AutomatedScreenshots
             }
         }
 
-
-        public static String ScreenshotFolder ()
-		{
-			String folder = AS.configuration.screenshotPath;
-			return folder;
-		}
-
-#if (!_UNLIMITED_FILE_ACCESS)
-		public static bool InsideApplicationRootPath(String path)
-		{
-			if (path == null) return false;
-			try
-			{
-				String fullpath = Path.GetFullPath(path);
-				return fullpath.StartsWith(Path.GetFullPath(ROOT_PATH));
-			}
-			catch
-			{
-				return false;
-			}
-		}
-#endif
-		public static bool ValidPathForWriteOperation(String path)
-		{
-#if (_UNLIMITED_FILE_ACCESS)
-			return true;
-#else
-			String fullpath = Path.GetFullPath(path);
-			return InsideApplicationRootPath(fullpath);
-#endif
-		}
-
-
 		public static void SaveConfiguration (Configuration configuration, String file)
 		{
 			if (!Directory.Exists(AS_CONFIG_FOLDER)) Directory.CreateDirectory(AS_CONFIG_FOLDER);
@@ -122,8 +82,6 @@ namespace AutomatedScreenshots
 				}
 			}
 
-			if (!ValidPathForWriteOperation(configuration.screenshotPath))
-				configuration.screenshotPath = FileOperations.ROOT_PATH + "Screenshots/";
 			configFileNode.SetValue ("screenshotPath", configuration.screenshotPath.ToString (), true);
 			configFileNode.SetValue ("filenameFormat", configuration.filename.ToString (), true);
 //			configFileNode.SetValue ("screenshotAtIntervals", configuration.screenshotAtIntervals.ToString (), true);
@@ -197,8 +155,6 @@ namespace AutomatedScreenshots
 					configuration.screenshotPath = SafeLoad (configFileNode.GetValue ("screenshotPath"), configuration.screenshotPath);
 					if (configuration.screenshotPath [configuration.screenshotPath.Length - 1] != '/' && configuration.screenshotPath [configuration.screenshotPath.Length - 1] != '\\')
 						configuration.screenshotPath += '/';
-					if (!ValidPathForWriteOperation(configuration.screenshotPath))
-								configuration.screenshotPath = FileOperations.ROOT_PATH + "Screenshots/";
 
 					configuration.filename = SafeLoad (configFileNode.GetValue ("filenameFormat"), configuration.filename);
 					if ((configuration.filename.Contains ("/") || configuration.filename.Contains ("\\")))

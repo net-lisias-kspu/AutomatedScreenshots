@@ -82,9 +82,16 @@ namespace AutomatedScreenshots
 		private string numToRotate;
 		private bool newautoSaveOnGameStart;
 
+		private MonoBehaviour owner;
 		internal MainMenuGui()
 		{
 			this.CreateButton();
+		}
+		internal static MainMenuGui Create(MonoBehaviour owner)
+		{
+			MainMenuGui r = owner.gameObject.AddComponent<MainMenuGui>();
+			r.owner = owner;
+			return r;
 		}
 
 		[UsedImplicitly]
@@ -219,7 +226,7 @@ namespace AutomatedScreenshots
 
 		private void Window (int id)
 		{
-			if (cfgWinData == false) {
+			if (!cfgWinData) {
 				cfgWinData = true;
 //				newScreenshotAtIntervals = AS.configuration.screenshotAtIntervals;
 				newInterval = AS.configuration.screenshotInterval;

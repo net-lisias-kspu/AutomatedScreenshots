@@ -14,7 +14,6 @@
 	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 */
 using System.Diagnostics;
-using UnityEngine;
 
 using Logger = KSPe.Util.Log.Logger;
 

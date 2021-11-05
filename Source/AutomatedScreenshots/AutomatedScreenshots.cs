@@ -48,8 +48,6 @@ namespace AutomatedScreenshots
 		private bool newScene = false;
 		private bool sceneReady = false;
 
-		private bool snapshotInProgress = false;
-
 		public bool isSceneReady ()
 		{
 			return sceneReady;
@@ -72,16 +70,16 @@ namespace AutomatedScreenshots
 
 		private float lastSceneUpdate = 0.0f;
 		private float sceneReadyAt = 0.0f;
-		private string pngToConvert = "";
-		private string jpgName = "";
+		private string jpgName = null;
 		private bool screenshotTaken = false;
-		private string screenshotFile = "";
+		private string lastScreenshot = null;
 		public static bool changeCallbacks;
 		public static Configuration configuration = new Configuration ();
 		public static KeyCode activeKeycode;
 		private bool wasUIVisible = true;
-		private ushort dualScreenshots = 0;
+		private bool dualScreenshots = false;
 		public MainMenuGui gui = null;
+		private Service.ImageConverter imageConverter = null;
 		private float lastBackup = 0.0f;
 		public Thread backupThread = null;
 
@@ -124,16 +122,17 @@ namespace AutomatedScreenshots
 		{
 			Log.trace("Start");
 			DontDestroyOnLoad (this);
-            FileOperations.MoveCfgToDataDir();
+			this.imageConverter = Service.ImageConverter.Create(this);
+			FileOperations.MoveCfgToDataDir();
 
-            configuration.Load ();
+			configuration.Load ();
 		}
 
 		public void Update ()
 		{
 			if (this.gui == null) {
 				Log.dbg("this.gui == null");
-				this.gui = this.gameObject.AddComponent<MainMenuGui> ();
+				this.gui = MainMenuGui.Create(this);
 				this.gui.SetVisible (false);
 				RegisterEvents ();
 			}
@@ -143,30 +142,30 @@ namespace AutomatedScreenshots
 				RegisterEvents ();
 			}
 
-			if ((Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.LeftControl)) &&
-				Input.GetKeyDown(KeyCode.F6))
+			if (Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.LeftControl))
 			{
-				AS.configuration.autoSave = !AS.configuration.autoSave;
-				this.gui.updateButtonStatus();
-				Log.trace("AutoSave: {0}", AS.configuration.autoSave);
-			}
-
-			if (Input.GetKeyDown (activeKeycode) && !(Input.GetKey(KeyCode.RightControl) || Input.GetKey(KeyCode.LeftControl)))
-			{
-				Log.dbg("Update:     GameScene: {0}", HighLogic.LoadedScene);
-				if (HighLogic.LoadedScene != GameScenes.MAINMENU) {
-					Log.dbg("KeyCode: {0} pressed", activeKeycode);
-					doSnapshots = !doSnapshots;
-					if (!doSnapshots && screenshotTaken && configuration.noGUIOnScreenshot == true && wasUIVisible)
-						GameEvents.onShowUI.Fire ();
-					Log.dbg("LoadedScene   doSnapshots: {0}", doSnapshots);
-				} else if (HighLogic.LoadedScene == GameScenes.MAINMENU) {
-					Log.dbg("LoadedScene = MAINMENU   doSnapshots: {0}", doSnapshots);
-					doSnapshots = false;
+				if(Input.GetKeyDown(KeyCode.F6))
+				{
+					Log.dbg("KeyCode: CTRL-F6 pressed");
+					AS.configuration.autoSave = !AS.configuration.autoSave;
+					Log.trace("AutoSave: {0}", AS.configuration.autoSave);
+					this.gui.updateButtonStatus();
 				}
-				this.gui.updateButtonStatus ();
 			}
-			
+			else if(Input.GetKeyDown(activeKeycode))
+			{
+				Log.dbg("KeyCode: {0} pressed at GameScene: {1}", activeKeycode, HighLogic.LoadedScene);
+				if (HighLogic.LoadedScene != GameScenes.MAINMENU) {
+					doSnapshots = !doSnapshots;
+					if (!doSnapshots && screenshotTaken && configuration.noGUIOnScreenshot && wasUIVisible)
+						GameEvents.onShowUI.Fire();
+				}
+				else
+					doSnapshots = false;
+
+				Log.dbg("LoadedScene = {0}  doSnapshots: {1}", HighLogic.LoadedScene, doSnapshots);
+				this.gui.updateButtonStatus();
+			}
 		}
 
 		public void LateUpdate ()
@@ -179,124 +178,94 @@ namespace AutomatedScreenshots
 				sfh.startBackup (this);
 				doSave = false;
 			}
-			if (doSnapshots || snapshotInProgress) {
+
+			if (doSnapshots)
+			{
 				Log.dbg("In LateUpdate, doSnapshots");
-				if (screenshotTaken && configuration.noGUIOnScreenshot == true && System.IO.File.Exists (screenshotFile) && wasUIVisible)
+
+				if (screenshotTaken && configuration.noGUIOnScreenshot && wasUIVisible && (null != this.lastScreenshot && System.IO.File.Exists(this.lastScreenshot))) // FIXME hitting the filesyste on Updates are bad. Try to work around this.
 					GameEvents.onShowUI.Fire ();
-				// If there is a png file waiting to be converted, then don't do another screenshot
-				if (pngToConvert != "") {
-					Log.dbg("pngToConvert: {0}", pngToConvert);
-					if (System.IO.File.Exists (pngToConvert)) {
-						Log.dbg("Converting screenshot to JPG. New name: {0}", jpgName);
-						ConvertToJPG (pngToConvert, jpgName, configuration.JPGQuality);
-						System.IO.FileInfo file = new System.IO.FileInfo (pngToConvert);
-						if (!configuration.keepOrginalPNG) {
-							Log.dbg("AutomatedScreenshots: Delete PNG file");
-							file.Delete ();
-						}
-						pngToConvert = "";
-						snapshotInProgress = false;
-					}
-				} else {
-					snapshotInProgress = false;
-					if (AS.configuration.precrashSnapshots) {
-						if (FlightGlobals.ActiveVessel != null) {
-							Vessel vessel = FlightGlobals.ActiveVessel;
 
-							if ((-vessel.verticalSpeed > AS.configuration.hsMinVerticalSpeed) &&
-							    ((FlightGlobals.ship_altitude / -vessel.verticalSpeed < AS.configuration.secondsUntilImpact) ||
-							    (FlightGlobals.ship_altitude < AS.configuration.hsAltitudeLimit)
-							    )) {
+				if (AS.configuration.precrashSnapshots) {
+					if (FlightGlobals.ActiveVessel != null) {
+						Vessel vessel = FlightGlobals.ActiveVessel;
 
-								if (Time.realtimeSinceStartup - lastPrecrashUpdate > configuration.hsScreenshotInterval) {
-									this.precrash = true;
-									lastPrecrashUpdate = Time.realtimeSinceStartup;
+						if ((-vessel.verticalSpeed > AS.configuration.hsMinVerticalSpeed) &&
+							((FlightGlobals.ship_altitude / -vessel.verticalSpeed < AS.configuration.secondsUntilImpact) ||
+							(FlightGlobals.ship_altitude < AS.configuration.hsAltitudeLimit)
+							)) {
 
-									Log.dbg("vessel.verticalSpeed: {0}", vessel.verticalSpeed);
-									Log.dbg("FlightGlobals.ship_altitude: {0}", FlightGlobals.ship_altitude);
-									Log.dbg("FlightGlobals.ship_altitude  / -vessel.verticalSpeed: {0}", (FlightGlobals.ship_altitude / -vessel.verticalSpeed));
-								}
+							if (Time.realtimeSinceStartup - lastPrecrashUpdate > configuration.hsScreenshotInterval) {
+								this.precrash = true;
+								lastPrecrashUpdate = Time.realtimeSinceStartup;
+
+								Log.dbg("vessel.verticalSpeed: {0}", vessel.verticalSpeed);
+								Log.dbg("FlightGlobals.ship_altitude: {0}", FlightGlobals.ship_altitude);
+								Log.dbg("FlightGlobals.ship_altitude  / -vessel.verticalSpeed: {0}", (FlightGlobals.ship_altitude / -vessel.verticalSpeed));
 							}
 						}
 					}
+				}
 
-					if ((this.specialScene && !this.newScene) || this.precrash || dualScreenshots == 1 ||
-					    ( /*AS.configuration.screenshotAtIntervals && */
-							((this.newScene && (this.sceneReady && Time.realtimeSinceStartup - sceneReadyAt > 0.1)  && Time.realtimeSinceStartup - lastSceneUpdate > 1) ||
-								((Time.realtimeSinceStartup - lastUpdate) > configuration.screenshotInterval && !this.newScene)
-					        )
-					    )) {
+				if ((this.specialScene && !this.newScene) || this.precrash || dualScreenshots ||
+					( /*AS.configuration.screenshotAtIntervals && */
+						((this.newScene && (this.sceneReady && Time.realtimeSinceStartup - sceneReadyAt > 0.1)  && Time.realtimeSinceStartup - lastSceneUpdate > 1) ||
+							((Time.realtimeSinceStartup - lastUpdate) > configuration.screenshotInterval && !this.newScene)
+						)
+					))
+				{
+					Log.dbg("this.specialScene: {0}", this.specialScene);
+					Log.dbg("this.precrash: {0}", this.precrash);
+					Log.dbg("dualScreenshots: {0}", this.dualScreenshots);
+					Log.dbg("this.newScene: {0}", this.newScene);
+					Log.dbg("this.sceneReady: {0}", this.sceneReady);
+					Log.dbg("Time.realtimeSinceStartup - sceneReadyAt: {0}", (Time.realtimeSinceStartup - sceneReadyAt));
+					Log.dbg("Time.realtimeSinceStartup - lastSceneUpdate: {0}", (Time.realtimeSinceStartup - lastSceneUpdate));
+					Log.dbg("Time.realtimeSinceStartup - lastUpdate: {0}", (Time.realtimeSinceStartup - lastUpdate));
 
-						Log.dbg("this.specialScene: {0}", this.specialScene);
-						Log.dbg("this.precrash: {0}", this.precrash);
-						Log.dbg("dualScreenshots: {0}", this.dualScreenshots);
-						Log.dbg("this.newScene: {0}", this.newScene);
-						Log.dbg("this.sceneReady: {0}", this.sceneReady);
-						Log.dbg("Time.realtimeSinceStartup - sceneReadyAt: {0}", (Time.realtimeSinceStartup - sceneReadyAt));
-						Log.dbg("Time.realtimeSinceStartup - lastSceneUpdate: {0}", (Time.realtimeSinceStartup - lastSceneUpdate));
-						Log.dbg("Time.realtimeSinceStartup - lastUpdate: {0}", (Time.realtimeSinceStartup - lastUpdate));
+					Log.dbg("Taking screenshot");
+					Log.dbg("CurrentDirectory: {0}", System.IO.Directory.GetCurrentDirectory ());
+					Log.dbg("FileOperations.ScreenshotFolder: {0}", Configuration.Instance.screenshotPath);
+					newScene = false;
+					this.specialScene = false;
 
+					do {
+						string s = AddInfo (configuration.filename, cnt++, sceneReady, specialScene, precrash);
 
-						Log.dbg("Taking screenshot");
-						Log.dbg("CurrentDirectory: {0}", System.IO.Directory.GetCurrentDirectory ());
-						Log.dbg("FileOperations.ScreenshotFolder: {0}", FileOperations.ScreenshotFolder ());
-						snapshotInProgress = true;
-						newScene = false;
-						this.specialScene = false;
-                        
-						//check if directory doesn't exist
-						if (!System.IO.Directory.Exists (FileOperations.ScreenshotFolder ())) {
-							Log.trace("Directory does not exist");
-							//if it doesn't, try to create it
-							try {
-								Log.trace("Trying to create directory");
-								System.IO.Directory.CreateDirectory (FileOperations.ScreenshotFolder ());
-							} catch (Exception e) {
-								Log.trace("Exception trying to create directory: {0}", e.Message);
-								return;
-							}
-							Log.trace("Directory created");
-						} 
-						do {
-							cnt++;
-							string s = AddInfo (configuration.filename, cnt, sceneReady, specialScene, precrash);
+						pngName = System.IO.Path.GetFullPath(Configuration.Instance.screenshotPath) + s + ".png";
+						jpgName = System.IO.Path.GetFullPath(Configuration.Instance.screenshotPath) + s + ".jpg";
+					} while (System.IO.File.Exists (pngName) || System.IO.File.Exists (jpgName));
 
-							pngName = System.IO.Path.GetFullPath (FileOperations.ScreenshotFolder ()) + s + ".png";
-							jpgName = System.IO.Path.GetFullPath (FileOperations.ScreenshotFolder ()) + s + ".jpg";
-						} while (System.IO.File.Exists (pngName) || System.IO.File.Exists (jpgName));
+					this.precrash = false;
 
-						this.precrash = false;
-
-						if (configuration.noGUIOnScreenshot == true)
-							GameEvents.onHideUI.Fire ();
-						if (configuration.noGUIOnScreenshot && configuration.guiOnScreenshot) {
-							if (dualScreenshots == 0)
-								dualScreenshots = 1;
-							else if (dualScreenshots == 1) {
-								dualScreenshots = 0;
-								GameEvents.onShowUI.Fire ();
-							}
+					if (configuration.noGUIOnScreenshot)
+						GameEvents.onHideUI.Fire ();
+					if (configuration.noGUIOnScreenshot && configuration.guiOnScreenshot) {
+						if (!dualScreenshots)
+							dualScreenshots = true;
+						else if (dualScreenshots) {
+							dualScreenshots = false;
+							GameEvents.onShowUI.Fire ();
 						}
-                        if (dualScreenshots == 0)
-                        {
-                            lastUpdate = Time.realtimeSinceStartup;
-                            screenshotTaken = true;
-                        }
-						screenshotFile = pngName;
-
-						// If Historian is available, then tell it to activate
-						HistorianSupport.Instance.set_m_Active();
-
-                        // Change second number for supersize.  If non-zero,
-                        // then multiplies the resolution by that number
-                        // Must be an integer
-						KSPe.Util.Image.Screenshot.Capture(pngName, configuration.supersize);
-
-						if (configuration.convertToJPG) {
-							pngToConvert = pngName;
-						}
-
 					}
+
+					if (!dualScreenshots)
+					{
+						lastUpdate = Time.realtimeSinceStartup;
+						screenshotTaken = true;
+					}
+
+					// If Historian is available, then tell it to activate
+					HistorianSupport.Instance.set_m_Active();
+
+					// Change second number for supersize.  If non-zero,
+					// then multiplies the resolution by that number
+					// Must be an integer
+					KSPe.Util.Image.Screenshot.Capture(pngName, configuration.supersize);
+					this.lastScreenshot = pngName;
+
+					if (configuration.convertToJPG)
+						this.imageConverter.AddJob(pngName, configuration.keepOrginalPNG, jpgName, configuration.JPGQuality);
 				}
 			}
 		}
@@ -525,21 +494,6 @@ namespace AutomatedScreenshots
 			Log.trace("destroying Automated Screenshots");
 			ToolbarController.Instance.Destroy();
 			configuration.Save ();
-		}
-
-		public void ConvertToJPG (string originalFile, string newFile, int quality = 75)
-		{
-			Texture2D png = new Texture2D (1, 1);
-
-			byte[] pngData = System.IO.File.ReadAllBytes (originalFile);
-			png.LoadImage (pngData);
-			byte[] jpgData = png.EncodeToJPG (quality);
-			var file = System.IO.File.Open (newFile, System.IO.FileMode.Create);
-			var binary = new System.IO.BinaryWriter (file);
-			binary.Write (jpgData);
-			file.Close ();
-			Destroy (png);
-			//Resources.UnloadAsset(png);
 		}
 
 		public static KeyCode setActiveKeycode (string keycode)

@@ -30,7 +30,32 @@ namespace AutomatedScreenshots
 		public float screenshotInterval { get; set; }
 		public bool convertToJPG { get; set; }
 		public bool keepOrginalPNG { get; set; }
-		public string screenshotPath { get; set; }
+
+		private string _screenshotPath = KSPe.IO.Hierarchy.SCREENSHOT.Solve();
+		public string screenshotPath {
+			get => _screenshotPath;
+			set
+			{
+				//check if directory doesn't exist
+				if (!System.IO.Directory.Exists(value))
+				{
+					Log.trace("Directory does not exist");
+					//if it doesn't, try to create it
+					try
+					{
+						Log.trace("Trying to create directory");
+						System.IO.Directory.CreateDirectory(value);
+					}
+					catch (Exception e)
+					{
+						Log.trace("Exception trying to create directory: {0}", e.Message);
+						return;
+					}
+					Log.trace("Directory created");
+				}
+				this._screenshotPath = value;
+			}
+		}
 		public string filename { get; set; }
 		public bool asynchronous { get; set; }
 		public ushort JPGQuality { get; set; }

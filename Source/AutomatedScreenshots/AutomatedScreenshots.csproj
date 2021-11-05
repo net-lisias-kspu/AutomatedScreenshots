@@ -45,6 +45,7 @@
     <Compile Include="ToolbarSupport.cs" />
     <Compile Include="HistorianSupport.cs" />
     <Compile Include="gui\Tex.cs" />
+    <Compile Include="Service\ImageConverter.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>
