@@ -1,6 +1,6 @@
 /*
 	This file is part of Automated Screenshots /L Unleashed
-		© 2018-2021 Lisias T : http://lisias.net <support@lisias.net>
+		© 2018-2023 Lisias T : http://lisias.net <support@lisias.net>
 
 	THIS FILE is licensed to you under:
 

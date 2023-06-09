@@ -1,6 +1,6 @@
 ﻿/*
 	This file is part of Automated Screenshots /L Unleashed
-		© 2018-2021 Lisias T : http://lisias.net <support@lisias.net>
+		© 2018-2023 Lisias T : http://lisias.net <support@lisias.net>
 		© 2015-2018 LinuxGuruJamer
 
 	Automated Screenshots /L Unleashed is licensed as follows:
@@ -21,7 +21,7 @@ namespace AutomatedScreenshots
 	public static class LegalMamboJambo
 	{
 		public const string Company = "/L Aerospace KSP Division";
-		public const string Copyright = "© 2018-2021 LisiasT";
+		public const string Copyright = "© 2018-2023 LisiasT";
 		public const string Product = "AutomatedScreenshots";
 		public const string Trademark = "Automated Screenshots™ by LinuxGuruJamer; /L Unleashed™ by LisiasT";
 	}
