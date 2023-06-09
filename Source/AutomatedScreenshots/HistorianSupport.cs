@@ -34,10 +34,10 @@ namespace AutomatedScreenshots
 
 		private HistorianSupport()
 		{
-			if (KSPe.Util.SystemTools.Assembly.Finder.ExistsByName(HISTORIAN_ASM)
-				&& KSPe.Util.SystemTools.TypeFinder.ExistsByQualifiedName(HISTORIAN_TYPE)
+			if (KSPe.Util.SystemTools.Assembly.Exists.ByName(HISTORIAN_ASM)
+				&& KSPe.Util.SystemTools.Type.Exists.ByQualifiedName(HISTORIAN_TYPE)
 			)
-				this.historian = KSPe.Util.SystemTools.TypeFinder.FindByQualifiedName(HISTORIAN_TYPE);
+			this.historian = KSPe.Util.SystemTools.Type.Find.ByQualifiedName(HISTORIAN_TYPE);
 			Log.info("{0} was {1}found.", HISTORIAN_TYPE, (null == this.historian? "not " : ""));
 		}
 
