@@ -23,9 +23,13 @@ namespace AutomatedScreenshots
 {
 	class SaveFilesHandlers
 	{
-
+		// Since it's impossible to enter any Editor without having the SaveGame fully loaded,
+		// there's no risk on doing things here on the static land.
+		//
+		// But don't try these on anything that could be loaded before KSP fully populate the HighLogic.fetch.GameSaveFolder!
 		private static string SAVEDIR => KSPe.IO.Hierarchy.SAVE.Solve(HighLogic.SaveFolder);
 		private static string SAVEFILELIST = KSPe.IO.Hierarchy.SAVE.Solve(HighLogic.SaveFolder, "saveFileList.txt");
+
 		private const int NUMFILES_OFFSET = 0;
 		private const int FILESAVECNT_OFFSET = 1;
 		private const int FILENAME_OFFSET = 2;
